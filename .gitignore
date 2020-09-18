@@ -1,0 +1,4 @@
+*.secret.lua
+*.exe
+vogelnest
+secrets.lua

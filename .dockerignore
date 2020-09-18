@@ -1,0 +1,5 @@
+*.secret.*
+.git
+.gitignore
+Makefile
+modd.conf
