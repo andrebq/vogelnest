@@ -1,4 +1,7 @@
-.PHONY: watch build dist
+.PHONY: watch build dist run build-image build-ui
+
+deps:
+	go get -u github.com/aerogo/pack/...
 
 watch:
 	modd
@@ -6,6 +9,8 @@ watch:
 build:
 	go build ./...
 
+build-image:
+	docker build -t andrebq/vogelnest:latest .
 
 dist:
 	go build .

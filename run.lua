@@ -1,10 +1,20 @@
 local exec = require('exec')
+local env = require('env')
+local fp = require('filepath')
+local string = require('string')
+
+local ok = exec.execute("make", "build-image")
+if not ok then println("Unable to build image") end
+env.set('CORS_ORIGINS', '*.ep.cluster.amoraes.info,*')
+
 require('./secrets')
 
-local ok, _exitCode, err = exec.execute("go", "build", ".")
-if not ok then
-    print(err)
-    return 0
-end
-
-exec.execute("./vogelnest", "-terms", "@jairbolsonaro,pantanal,#pantanal,#queimada")
+exec.execute("docker", "run", "--name", "vogelnest", "--rm", "-ti",
+    "-v", string.format("%s:%s", fp.abs(fp.join('internal', 'ui', 'dist')), "/opt/vogelnest/static"),
+    "-e", "CORS_ORIGINS",
+    "-e", 'TWITTER_API_KEY',
+    "-e", 'TWITTER_API_SECRET_KEY',
+    "-e", 'TWITTER_ACCESS_TOKEN',
+    "-e", 'TWITTER_ACCESS_TOKEN_SECRET',
+    "-p", "8080:8080",
+    "andrebq/vogelnest:latest")
