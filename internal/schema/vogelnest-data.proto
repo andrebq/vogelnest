@@ -1,0 +1,110 @@
+syntax = "proto3";
+option go_package = "github.com/andrebq/vogelnest/internal/schema";
+message Tweet {
+    Coordinates coordinates = 1;
+    int64 id = 2;
+    string lange = 3;
+    bool possibleSensitive = 4;
+    TweetStats stats = 5;
+    WitheldInfo witheld = 6;
+    Tweet retweet = 7;
+    string text = 8;
+    QuoteInfo quoteInfo = 9;
+    Entities entities = 10;
+    string createdAt = 11;
+}
+
+message Entities {
+    repeated Hashtag hashtags = 1;
+    repeated URLInfo urls = 2;
+    repeated Media media = 3;
+    repeated Mention mentions = 4;
+}
+
+message Hashtag {
+    Indices indices = 1;
+    string text = 2;
+}
+
+message Indices {
+    int32 from = 1;
+    int32 to = 2;
+}
+
+message Media {
+    URLInfo url = 1;
+    int64 id = 2;
+    string mediaURL = 3;
+    string mediaURLHttps = 4;
+    int64 sourceStatusID = 5;
+    string type = 6;
+    MediaSizes size = 7;
+    VideoInfo videoInfo = 8;
+}
+
+message MediaSizes {
+    MediaSize thumb = 1;
+    MediaSize small = 2;
+    MediaSize medium = 3;
+    MediaSize large = 4;
+}
+
+message MediaSize {
+    int32 width = 1;
+    int32 height = 2;
+    string resize = 3;
+}
+
+message URLInfo {
+    Indices indices = 1;
+    string displayURL = 2;
+    string expandedURL = 3; 
+    string url = 4;
+}
+
+message Mention {
+    int64 id = 1;
+    string name = 2;
+    string screenName = 3;
+}
+
+message VideoInfo {
+	AspectRatio aspectRatio = 1;
+    int32 durationMillis = 2;
+    repeated VideoVariant variants = 3;
+}
+
+message VideoVariant {
+	string contentType = 1;
+	int32 bitrate = 2;
+	string url = 3;
+}
+
+message AspectRatio {
+    int32 width = 1;
+    int32 height = 2;
+}
+
+message QuoteInfo {
+    int64 id = 1;
+    Tweet tweet = 2;
+}
+
+message WitheldInfo {
+	bool withheldCopyright = 1;
+	string withheldScope = 2;
+	repeated string withheldInCountries = 3;
+}
+
+message TweetStats {
+    int32 quoteCount = 1;
+    int32 replyCount = 2;
+    int32 retweetCount = 3;
+    bool retweeted = 4;
+}
+
+message Coordinates {
+    double lat = 1;
+    double long = 2;
+    string type = 3;
+}
