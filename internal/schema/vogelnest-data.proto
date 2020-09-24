@@ -3,13 +3,13 @@ option go_package = "github.com/andrebq/vogelnest/internal/schema";
 message Tweet {
     Coordinates coordinates = 1;
     int64 id = 2;
-    string lange = 3;
+    string lang = 3;
     bool possibleSensitive = 4;
     TweetStats stats = 5;
     WitheldInfo witheld = 6;
     Tweet retweet = 7;
     string text = 8;
-    QuoteInfo quoteInfo = 9;
+    Tweet quotedStatus = 9;
     Entities entities = 10;
     string createdAt = 11;
 }
@@ -27,16 +27,16 @@ message Hashtag {
 }
 
 message Indices {
-    int32 from = 1;
-    int32 to = 2;
+    int32 start = 1;
+    int32 end = 2;
 }
 
 message Media {
     URLInfo url = 1;
     int64 id = 2;
-    string mediaURL = 3;
-    string mediaURLHttps = 4;
-    int64 sourceStatusID = 5;
+    string mediaUrl = 3;
+    string mediaUrlHttps = 4;
+    int64 sourceStatusId = 5;
     string type = 6;
     MediaSizes size = 7;
     VideoInfo videoInfo = 8;
@@ -57,8 +57,8 @@ message MediaSize {
 
 message URLInfo {
     Indices indices = 1;
-    string displayURL = 2;
-    string expandedURL = 3; 
+    string displayUrl = 2;
+    string expandedUrl = 3; 
     string url = 4;
 }
 
@@ -83,11 +83,6 @@ message VideoVariant {
 message AspectRatio {
     int32 width = 1;
     int32 height = 2;
-}
-
-message QuoteInfo {
-    int64 id = 1;
-    Tweet tweet = 2;
 }
 
 message WitheldInfo {
