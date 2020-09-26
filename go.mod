@@ -7,6 +7,7 @@ require (
 	github.com/dghubble/oauth1 v0.6.0
 	github.com/dgraph-io/badger v1.6.2
 	github.com/golang/protobuf v1.4.2
+	github.com/golang/snappy v0.0.2
 	github.com/gorilla/websocket v1.4.2
 	github.com/prometheus/client_golang v1.7.1
 	github.com/rs/cors v1.7.0

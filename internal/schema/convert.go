@@ -98,7 +98,7 @@ func (e *Entities) Populate(o *twitter.Tweet) {
 		}
 	}
 
-	if o.ExtendedEntities.Media != nil {
+	if o.ExtendedEntities != nil {
 		for _, m := range o.ExtendedEntities.Media {
 			md := &Media{}
 			md.Populate(m)

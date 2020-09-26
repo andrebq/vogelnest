@@ -246,6 +246,7 @@ func (s *Stream) changeTerms(ts *twitter.Stream, terms []string) (*twitter.Strea
 	if ts != nil {
 		ts.Stop()
 	}
+	s.logCtx.Info().Str("action", "change-terms").Strs("new-terms", terms).Send()
 	var err error
 	ts, err = s.client.Streams.Filter(&twitter.StreamFilterParams{
 		Track: terms,

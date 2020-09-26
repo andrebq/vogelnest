@@ -11,6 +11,7 @@ require('./secrets')
 
 exec.execute("docker", "run", "--name", "vogelnest", "--rm", "-ti",
     "-v", string.format("%s:%s", fp.abs(fp.join('internal', 'ui', 'dist')), "/opt/vogelnest/static"),
+    "-v", string.format("%s:%s", fp.abs(fp.join("testvolume", "tweets")), "/var/data/vogelnest/tweets"),
     "-e", "CORS_ORIGINS",
     "-e", 'TWITTER_API_KEY',
     "-e", 'TWITTER_API_SECRET_KEY',

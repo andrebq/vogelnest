@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/andrebq/vogelnest/internal/api"
+	"github.com/andrebq/vogelnest/internal/storage"
 	"github.com/andrebq/vogelnest/internal/tweets"
 	"github.com/rs/zerolog/log"
 	"github.com/thejerf/suture"
@@ -18,6 +19,7 @@ var (
 	bind        = flag.String("bind", "0.0.0.0", "Address to listen for incoming HTTP requests")
 	port        = flag.Int("port", 8080, "Port to listen for incoming requests")
 	serveStatic = flag.String("serve-static", "", "When set, serve static files from this directory")
+	storageDir  = flag.String("storage", "/var/data/vogelnest/tweets", "Where to keep the downloaded data for post-processing")
 )
 
 func main() {
@@ -28,8 +30,14 @@ func main() {
 		Log:     func(s string) { rootLogger.Warn().Msg(s) },
 		Timeout: time.Minute,
 	})
+
 	stream := tweets.NewStream()
 	rootSupervisor.Add(stream)
+	st, err := storage.NewServer(*storageDir, stream)
+	if err != nil {
+		panic(err)
+	}
+	rootSupervisor.Add(st)
 	rootSupervisor.Add(api.NewServer(*bind, *port, *serveStatic,
 		strings.Split(os.Getenv("CORS_ORIGINS"), ","),
 		stream.SetTerms, stream.NewSink, stream.RemoveSink))

@@ -13,4 +13,4 @@ FROM alpine
 WORKDIR /opt/vogelnest
 COPY --from=glua /go/bin/glua /usr/local/bin
 COPY --from=app /app/vogelnest/vogelnest .
-CMD [ "/opt/vogelnest/vogelnest", "-serve-static", "/opt/vogelnest/static/"]
+CMD [ "/opt/vogelnest/vogelnest", "-serve-static", "/opt/vogelnest/static/", "-storage", "/var/data/vogelnest/tweets"]
