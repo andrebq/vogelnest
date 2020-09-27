@@ -8,6 +8,7 @@ watch:
 
 build:
 	go build ./...
+	go install ./cmd/vogelctl
 
 build-image:
 	docker build -t andrebq/vogelnest:latest .

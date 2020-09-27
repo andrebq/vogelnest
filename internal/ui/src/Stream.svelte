@@ -19,14 +19,19 @@ import { update_keyed_each } from "svelte/internal";
     ws.onmessage = function(msg) {
         tweetCount++;
         const tweet = JSON.parse(msg.data);
-        hashTags = hashTags.withMutations((set) => {
-            tweet.entities.hashtags.forEach((ht) => set.add(ht.text));
-            return set;
-        });
-        mentions = mentions.withMutations((set) => {
-            tweet.entities.user_mentions.forEach((ut) => set.add(ut.screen_name))
-            return set;
-        })
+        window.lastTweet = tweet;
+        if (tweet.entities.hashtags) {
+            hashTags = hashTags.withMutations((set) => {
+                tweet.entities.hashtags.forEach((ht) => set.add(ht.text));
+                return set;
+            });
+        }
+        if (tweet.entities.mentions) {
+            mentions = mentions.withMutations((set) => {
+                tweet.entities.mentions.forEach((ut) => set.add(ut.screenName))
+                return set;
+            })
+        }
         latestTweets = trim(latestTweets.unshift(tweet));
     }
 

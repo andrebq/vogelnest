@@ -12,6 +12,13 @@ message Tweet {
     Tweet quotedStatus = 9;
     Entities entities = 10;
     string createdAt = 11;
+    ReplyInfo reply = 12;
+}
+
+message ReplyInfo {
+    string screenName = 1;
+    int64 userId = 2;
+    int64 statusId = 3;
 }
 
 message Entities {

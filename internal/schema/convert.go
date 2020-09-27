@@ -24,6 +24,14 @@ func (t *Tweet) Populate(o *twitter.Tweet) error {
 	t.Witheld = &WitheldInfo{}
 	t.Witheld.Populate(o)
 
+	if o.InReplyToStatusID != 0 || o.InReplyToUserID != 0 {
+		t.Reply = &ReplyInfo{
+			ScreenName: o.InReplyToScreenName,
+			UserId:     o.InReplyToUserID,
+			StatusId:   o.InReplyToStatusID,
+		}
+	}
+
 	if o.RetweetedStatus != nil {
 		t.Retweet = &Tweet{}
 		t.Retweet.Populate(o.RetweetedStatus)

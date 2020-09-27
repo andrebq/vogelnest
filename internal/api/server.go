@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/andrebq/vogelnest/internal/schema"
 	"github.com/rs/cors"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/gorilla/websocket"
@@ -147,9 +149,22 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, req *http.Request) {
 	defer c.Close()
 	output := s.addsink(100)
 	for v := range output {
-		err := c.WriteJSON(v)
+		t := &schema.Tweet{}
+		err = t.Populate(v)
+		if err != nil {
+			s.sampledCtx.Error().Err(err).Str("action", "convertTweet").Send()
+			continue
+		}
+		buf, err := protojson.Marshal(t)
+		if err != nil {
+			s.sampledCtx.Error().Err(err).Str("action", "protjson").Send()
+			continue
+		}
+		err = c.WriteMessage(websocket.TextMessage, buf)
 		if err != nil {
 			s.removesink(output)
 		}
 	}
 }
+
+func (s *Server) String() string { return "api-server" }
