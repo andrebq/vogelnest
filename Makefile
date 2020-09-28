@@ -7,7 +7,7 @@ watch:
 	modd
 
 build:
-	go build ./...
+	go test ./internal/lib/trail
 	go install ./cmd/vogelctl
 
 build-image:
