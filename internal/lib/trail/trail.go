@@ -2,7 +2,6 @@ package trail
 
 import (
 	"compress/gzip"
-	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -99,7 +98,21 @@ func (t *Trail) SegmentNames() ([]string, error) {
 // OpenSegment looks up and returns the segment with the
 // given name or an error if the segment is not available
 func (t *Trail) OpenSegment(name string) (Segment, error) {
-	return nil, errors.New("OpenSegment not implemented")
+	segfile := filepath.Join(t.dir, filepath.Clean(name))
+	file, err := os.Open(segfile)
+	if err != nil {
+		return nil, err
+	}
+	gzr, err := gzip.NewReader(file)
+	if err != nil {
+		file.Close()
+		return nil, err
+	}
+	return &segment{
+		readonly: true,
+		file:     file,
+		input:    gzr,
+	}, nil
 }
 
 func (t *Trail) startSegment() error {

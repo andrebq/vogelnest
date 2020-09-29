@@ -20,6 +20,7 @@ type (
 		datawritten bool
 		packed      bool
 		output      segmentOutput
+		input       io.Reader
 		file        segmentFile
 		sum         hash.Hash32
 	}
