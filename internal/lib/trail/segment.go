@@ -20,9 +20,12 @@ type (
 		datawritten bool
 		packed      bool
 		output      segmentOutput
-		input       io.Reader
-		file        segmentFile
-		sum         hash.Hash32
+		input       interface {
+			io.Reader
+			io.ByteReader
+		}
+		file segmentFile
+		sum  hash.Hash32
 	}
 
 	updateSum struct {
@@ -31,6 +34,14 @@ type (
 	}
 
 	closedReader struct{}
+
+	failedReader struct {
+		err error
+	}
+
+	entryReader struct {
+		buf []byte
+	}
 
 	segmentOutput interface {
 		io.Writer
@@ -62,7 +73,9 @@ func (s *segment) packAndClose() error {
 	if !s.datawritten {
 		return os.Remove(name)
 	}
-	now := fmt.Sprintf("%v_%x.segment.gz", time.Now().UTC().Format("20060102_150405"), s.sum.Sum32())
+	currentSecond := time.Now().UTC().Truncate(time.Second)
+	millis := time.Now().UTC().Sub(currentSecond).Milliseconds()
+	now := fmt.Sprintf("%v_%x_%x.segment.gz", currentSecond.Format("20060102_150405"), millis, s.sum.Sum32())
 	newname := filepath.Join(filepath.Dir(name), now)
 	return os.Rename(name, newname)
 }
@@ -86,7 +99,12 @@ func (s *segment) NextEntry() io.Reader {
 	if s.closed {
 		return closedReader{}
 	}
-	return nil
+	entry := &segmentEntry{}
+	_, err := entry.ReadFrom(s.input)
+	if err != nil {
+		return failedReader{}
+	}
+	return &entryReader{entry.buf}
 }
 
 // Close the current segment releasing any resources associated with it
@@ -116,4 +134,17 @@ func (c closedReader) Read(_ []byte) (int, error) { return 0, ErrClosed }
 func (u updateSum) Write(buf []byte) (int, error) {
 	u.sum.Write(buf)
 	return u.out.Write(buf)
+}
+
+func (f failedReader) Read(_ []byte) (int, error) {
+	return 0, f.err
+}
+
+func (e *entryReader) Read(dest []byte) (int, error) {
+	n := copy(dest, e.buf)
+	if n == 0 {
+		return 0, io.EOF
+	}
+	e.buf = e.buf[n:]
+	return n, nil
 }

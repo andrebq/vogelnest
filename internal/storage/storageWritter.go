@@ -159,12 +159,10 @@ func (tl *TweetLogWriter) doPack(oldfile string) error {
 			break
 		}
 		if err != nil {
-			println("wtf!!!!!!!!!!!!!!!!!!!!!!!!1")
 			return err
 		}
 		_, err = gz.Write(buf[:n])
 		if err != nil {
-			println("reallly!!!!")
 			return err
 		}
 	}

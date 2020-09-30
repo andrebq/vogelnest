@@ -2,6 +2,7 @@ package trail
 
 import (
 	"bytes"
+	"crypto/rand"
 	"io"
 	"io/ioutil"
 	"os"
@@ -40,8 +41,8 @@ func TestWrite(t *testing.T) {
 		t.Fatalf("Since we called Pack then Close, it should have 2 segments but got %v", len(segmentNames))
 	}
 
-	checkSegment := func(log *Trail, name string, expectedEntries [][]byte) {
-		segment, err := log.OpenSegment(segmentNames[0])
+	checkSegment := func(log *Trail, name string, expectedEntries ...[]byte) {
+		segment, err := log.OpenSegment(name)
 		mustNot(t, "fail to open segment name", err)
 		defer segment.Close()
 
@@ -50,10 +51,10 @@ func TestWrite(t *testing.T) {
 			n, err := io.Copy(buf, segment.NextEntry())
 			mustNot(t, "fail to copy entry to buffer", err)
 			if int(n) != len(expectedValue) {
-				t.Fatalf("Entry from segment should have %v bytes got got %v", len(expectedValue), n)
+				t.Errorf("Entry from segment should have %v bytes got got %v", len(expectedValue), n)
 			}
 			if !reflect.DeepEqual(buf.Bytes(), expectedValue) {
-				t.Fatalf("Expecting %v but got %v", string(expectedValue), buf.String())
+				t.Errorf("Expecting %v but got %v", string(expectedValue), buf.String())
 			}
 		}
 
@@ -62,8 +63,47 @@ func TestWrite(t *testing.T) {
 		}
 	}
 
-	checkSegment(log, segmentNames[0], expectedEntries[:2])
-	checkSegment(log, segmentNames[1], expectedEntries[2:])
+	checkSegment(log, segmentNames[0], expectedEntries[:2]...)
+	checkSegment(log, segmentNames[1], expectedEntries[2:]...)
+
+	expectedSize := int64(95)
+	size, err := log.Size()
+	mustNot(t, "fail to compute the size", err)
+
+	if size != expectedSize {
+		t.Errorf("Size should be %v bytes but got %v", expectedSize, size)
+	}
 
 	mustNot(t, "fail to close", log.Close())
+}
+
+func BenchmarkAppendRandom(b *testing.B) {
+	b.StopTimer()
+	dir, err := ioutil.TempDir("", "trail-test")
+	defer os.RemoveAll(dir)
+	mustNot(b, "fail to create temp dir", err)
+	log, err := New(dir, 0644)
+	mustNot(b, "fail to create log", err)
+
+	segments := b.N
+	entriesPerSegment := 100
+	entrySize := 3000
+
+	randomData := make([]byte, entrySize*entriesPerSegment*segments)
+	_, err = rand.Read(randomData)
+	buf := bytes.NewBuffer(randomData)
+	mustNot(b, "fail to populate random data", err)
+	scratchBuffer := make([]byte, entrySize)
+	b.StartTimer()
+	for segments > 0 {
+		missingEntries := entriesPerSegment
+		for missingEntries > 0 {
+			buf.Read(scratchBuffer)
+			err = log.Append(scratchBuffer)
+			mustNot(b, "fail to write entry to log", err)
+			missingEntries--
+		}
+		mustNot(b, "fail to pack segment", log.Pack())
+		segments--
+	}
 }

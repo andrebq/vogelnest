@@ -1,6 +1,7 @@
 package trail
 
 import (
+	"bufio"
 	"compress/gzip"
 	"io"
 	"os"
@@ -27,7 +28,7 @@ type (
 )
 
 var (
-	rePackedSegment = regexp.MustCompile(`\d+_\d+_[\d|a-z]+.segment.gz`)
+	rePackedSegment = regexp.MustCompile(`\d+_\d+_[\d|a-z]+_[\d|a-z]+.segment.gz`)
 )
 
 // New trail saving files in the given directory
@@ -75,6 +76,27 @@ func (t *Trail) Close() error {
 	return err
 }
 
+// Size returns the total size of this log,
+// including packed entries and the active log,
+// the active log might change as the file is not synced
+// on every write
+func (t *Trail) Size() (int64, error) {
+	segments, err := t.SegmentNames()
+	if err != nil {
+		return 0, err
+	}
+	segments = append(segments, filepath.Base(t.activeSegment.file.Name()))
+	total := int64(0)
+	for _, s := range segments {
+		info, err := os.Lstat(filepath.Join(t.dir, s))
+		if err != nil {
+			return 0, err
+		}
+		total += info.Size()
+	}
+	return total, nil
+}
+
 // SegmentNames returns the list of segments that this Trail
 // has access to
 func (t *Trail) SegmentNames() ([]string, error) {
@@ -111,7 +133,7 @@ func (t *Trail) OpenSegment(name string) (Segment, error) {
 	return &segment{
 		readonly: true,
 		file:     file,
-		input:    gzr,
+		input:    bufio.NewReader(gzr),
 	}, nil
 }
 
