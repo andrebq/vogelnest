@@ -29,6 +29,14 @@ func TestWrite(t *testing.T) {
 	mustNot(t, "fail to pack", log.Pack())
 	mustNot(t, "fail to append", log.Append(expectedEntries[2]))
 	mustNot(t, "fail to append", log.Append(expectedEntries[3]))
+
+	unpacked, err := log.UnpackedSize()
+	mustNot(t, "fail to compute unpacked size", err)
+	expectedUnpacked := int64(10)
+	if unpacked != expectedUnpacked {
+		t.Errorf("Should have only %v of unpacked bytes but got %v", expectedUnpacked, unpacked)
+	}
+
 	mustNot(t, "fail to pack", log.Pack())
 	mustNot(t, "fail to close", log.Close())
 
@@ -69,9 +77,23 @@ func TestWrite(t *testing.T) {
 	expectedSize := int64(95)
 	size, err := log.Size()
 	mustNot(t, "fail to compute the size", err)
-
 	if size != expectedSize {
 		t.Errorf("Size should be %v bytes but got %v", expectedSize, size)
+	}
+
+	expectedTrim := []string{segmentNames[0]}
+	segmentsToTrim, err := log.ComputeTrim(expectedSize / 2)
+	mustNot(t, "fail to compute how many segments should be trimmed", err)
+	if !reflect.DeepEqual(expectedTrim, segmentsToTrim) {
+		t.Errorf("Should have selected %v for trim but got %v", expectedTrim, segmentsToTrim)
+	}
+
+	err = log.Trim(segmentsToTrim...)
+	mustNot(t, "fail to trim segments", err)
+	segmentsToTrim, err = log.ComputeTrim(expectedSize / 2)
+	mustNot(t, "fail to compute segments to trim after trim", err)
+	if len(segmentsToTrim) > 0 {
+		t.Errorf("After trim shouldn't have any segments to trim but got: %v", segmentsToTrim)
 	}
 
 	mustNot(t, "fail to close", log.Close())

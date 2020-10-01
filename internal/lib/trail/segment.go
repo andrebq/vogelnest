@@ -1,7 +1,6 @@
 package trail
 
 import (
-	"errors"
 	"fmt"
 	"hash"
 	"hash/crc32"
@@ -110,7 +109,10 @@ func (s *segment) NextEntry() io.Reader {
 // Close the current segment releasing any resources associated with it
 func (s *segment) Close() error {
 	if s.readonly {
-		return errors.New("Close for read-only segments not implemented")
+		f := s.file
+		s.file = nil
+		s.input = nil
+		return f.Close()
 	}
 	err := s.output.Close()
 	if err != nil {
