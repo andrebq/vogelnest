@@ -33,15 +33,21 @@ var (
 )
 
 // New trail saving files in the given directory
-func New(dir string, segmentFileMode os.FileMode) (*Trail, error) {
+func New(dir string, segmentFileMode os.FileMode, truncateOldFile bool) (*Trail, error) {
 	t := &Trail{
 		dir: dir,
 	}
-	t.err = t.startSegment()
+	t.err = t.startSegment(truncateOldFile)
 	if t.err != nil {
 		return nil, t.err
 	}
 	return t, nil
+}
+
+// OpenSegment returns a single segment for a Trail,
+// it shouldn't be used with an active segment.
+func OpenSegment(filename string) (Segment, error) {
+	return openSegFile(filename)
 }
 
 // Append the given content to the active segment
@@ -62,7 +68,7 @@ func (t *Trail) Pack() error {
 	if t.err != nil {
 		return t.err
 	}
-	t.err = t.startSegment()
+	t.err = t.startSegment(false)
 	return t.err
 }
 
@@ -134,6 +140,10 @@ func (t *Trail) SegmentNames() ([]string, error) {
 // given name or an error if the segment is not available
 func (t *Trail) OpenSegment(name string) (Segment, error) {
 	segfile := filepath.Join(t.dir, filepath.Clean(name))
+	return openSegFile(segfile)
+}
+
+func openSegFile(segfile string) (Segment, error) {
 	file, err := os.Open(segfile)
 	if err != nil {
 		return nil, err
@@ -211,9 +221,15 @@ func (t *Trail) Trim(segments ...string) error {
 	return nil
 }
 
-func (t *Trail) startSegment() error {
+func (t *Trail) startSegment(truncateOldFile bool) error {
 	seg := &segment{}
-	fd, err := os.OpenFile(filepath.Join(t.dir, "active.gz"), os.O_CREATE|os.O_EXCL, t.mode)
+	flags := os.O_CREATE | os.O_RDWR
+	if truncateOldFile {
+		flags |= os.O_TRUNC
+	} else {
+		flags |= os.O_EXCL
+	}
+	fd, err := os.OpenFile(filepath.Join(t.dir, "active.gz"), flags, t.mode)
 	if err != nil {
 		return err
 	}

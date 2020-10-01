@@ -30,27 +30,24 @@ func streamJSON() *cobra.Command {
 			if len(args) == 0 {
 				return errors.New("requires at least one file to read")
 			}
+
 			stdout := cmd.OutOrStdout()
 			for _, f := range args {
-				r, err := storage.OpenPackedFile(f)
+				tlr, err := storage.OpenLog(f)
 				if err != nil {
-					log.Error().Err(err).Send()
-					continue
+					return err
 				}
-				for r.Next() {
-					entry := r.Entry()
-					buf, err := protojson.Marshal(entry)
+				for {
+					e, err := tlr.Next()
 					if err != nil {
-						log.Error().Err(err).Send()
-						continue
+						break
 					}
+					buf, _ := protojson.Marshal(e)
 					stdout.Write(buf)
 					io.WriteString(stdout, "\n")
 				}
-				if r.Err() != nil {
-					log.Error().Err(r.Err()).Send()
-				}
 			}
+			_ = stdout
 			return nil
 		},
 	}
