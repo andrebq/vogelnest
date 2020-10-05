@@ -14,7 +14,7 @@ func TestWrite(t *testing.T) {
 	dir, err := ioutil.TempDir("", "trail-test")
 	defer os.RemoveAll(dir)
 	mustNot(t, "fail to create temp dir", err)
-	log, err := New(dir, 0644)
+	log, err := New(dir, 0644, false)
 	mustNot(t, "fail to create log", err)
 
 	expectedEntries := [][]byte{
@@ -40,7 +40,7 @@ func TestWrite(t *testing.T) {
 	mustNot(t, "fail to pack", log.Pack())
 	mustNot(t, "fail to close", log.Close())
 
-	log, err = New(dir, 0644)
+	log, err = New(dir, 0644, false)
 	mustNot(t, "fail to open a trail in the same folder as a closed trail", err)
 
 	segmentNames, err := log.SegmentNames()
@@ -104,7 +104,7 @@ func BenchmarkAppendRandom(b *testing.B) {
 	dir, err := ioutil.TempDir("", "trail-test")
 	defer os.RemoveAll(dir)
 	mustNot(b, "fail to create temp dir", err)
-	log, err := New(dir, 0644)
+	log, err := New(dir, 0644, false)
 	mustNot(b, "fail to create log", err)
 
 	segments := b.N

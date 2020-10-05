@@ -1,5 +1,5 @@
 export const endpoints = {
-    websocket: () => "ws://localhost:8080/stream/ws",
-    terms: () => "http://localhost:8080/stream/terms"
+    websocket: () => '__WSSCHEME' + '__APIROOT' + "/stream/ws",
+    terms: () => '__APISCHEME' + '__APIROOT' + "/stream/terms"
 }
 export default endpoints;

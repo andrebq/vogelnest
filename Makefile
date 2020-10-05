@@ -1,5 +1,9 @@
 .PHONY: watch build dist run build-image build-ui
 
+IMAGE_NAME?=andrebq/vogelnest
+IMAGE_TAG?=latest
+IMAGE_FULL_NAME=$(IMAGE_NAME):$(IMAGE_TAG)
+
 deps:
 	go get -u github.com/aerogo/pack/...
 
@@ -12,10 +16,10 @@ build:
 	go install ./cmd/vogelctl
 
 build-image:
-	docker build -t andrebq/vogelnest:latest .
+	docker build -t $(IMAGE_FULL_NAME) .
 
-dist:
-	go build .
+push:
+	docker push $(IMAGE_FULL_NAME)
 
 run:
 	glua run.lua

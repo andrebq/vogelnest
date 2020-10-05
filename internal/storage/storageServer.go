@@ -31,12 +31,12 @@ const (
 )
 
 // NewServer saving files to basedir and reading content from stream
-func NewServer(basedir string, stream *tweets.Stream) (*Server, error) {
+func NewServer(basedir string, stream *tweets.Stream, maxSizeMB, packLimitMB int64) (*Server, error) {
 	s := &Server{
 		trunc:     time.Minute * 1,
 		dir:       basedir,
-		maxSize:   300 * megabytes,
-		packlimit: 50 * megabytes,
+		maxSize:   maxSizeMB * megabytes,
+		packlimit: packLimitMB * megabytes,
 	}
 	s.stream = stream
 	return s, nil

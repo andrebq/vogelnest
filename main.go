@@ -20,6 +20,8 @@ var (
 	port        = flag.Int("port", 8080, "Port to listen for incoming requests")
 	serveStatic = flag.String("serve-static", "", "When set, serve static files from this directory")
 	storageDir  = flag.String("storage", "/var/data/vogelnest/tweets", "Where to keep the downloaded data for post-processing")
+	maxSizeMB   = flag.Int64("max-size", 10, "Max size in MB, after this value old segements will be deleted")
+	packLimitMB = flag.Int64("segment-size", 1, "Ideal size in MB for each packed segment")
 )
 
 func main() {
@@ -33,7 +35,7 @@ func main() {
 
 	stream := tweets.NewStream()
 	rootSupervisor.Add(stream)
-	st, err := storage.NewServer(*storageDir, stream)
+	st, err := storage.NewServer(*storageDir, stream, *maxSizeMB, *packLimitMB)
 	if err != nil {
 		panic(err)
 	}

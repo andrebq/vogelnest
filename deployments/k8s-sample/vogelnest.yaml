@@ -1,0 +1,99 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vogelnest
+  labels:
+    app: vogelnest
+spec:
+  # vogelnest currently doesn't support distributed collection phase
+  # since the api is bundled with the colector (to simplify things initially)
+  # we have to stick to one replica
+  #
+  # The total number of collectors is limited only by the number of
+  # active TCP connections your account can make to Twitter.
+  #
+  # Which for non-enterprise contracts is 1 anyway
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vogelnest
+  template:
+    metadata:
+      labels:
+        app: vogelnest
+    spec:
+      containers:
+        - name: vogelnest
+          image: andrebq/vogelnest:latest
+          arg:
+            - "/opt/vogelnest/vogelnest"
+            - "-serve-static"
+            - "/opt/vogelnest/static"
+            - "-storage"
+            - "/var/data/vogelnest/tweets"
+          env:
+            # always set this to some domain under your control
+            CORS_ORIGINS: '*.your.public.tld'
+          envFrom:
+            - secretRef:
+                name: vogelnest-twitter-credentials
+                optional: false
+          # if you use semver tags, change it to IfNotPresent
+          # as semver tags are immutable anyway
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            periodSeconds: 10
+            initialDelaySeconds: 1
+            httpGet:
+              path: /
+              port: 8080
+          volumeMounts:
+            - name: tweet-storage
+              mountPath: 
+      volumes:
+        - name: tweet-storage
+          # Change this to a PVC or some other
+          # persistent medium
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vogelnest
+  labels:
+    app: vogelnest
+  annotations:
+      # vogelnest has builtin support for prometheue
+      prometheus.io/scrape: 'true'
+      prometheus.io/port:   '8080'
+spec:
+  selector:
+    app: vogelnest
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vogelnest
+spec:
+  tls:
+  - hosts:
+      - your.public.tdl
+    secretName: certificate
+  rules:
+  - host: your.public.tld
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: vogelnest
+            port:
+              number: 8080

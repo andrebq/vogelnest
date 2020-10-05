@@ -40,7 +40,9 @@ export default {
 	},
 	plugins: [
         replace({
-            '__api_root__': process.env.API_ROOT
+			'__APIROOT': process.env.API_ROOT,
+			'__WSSCHEME': 'wss://',
+			'__APISCHEME': 'https://'
         }),
 		svelte({
 			// enable run-time checks when not in production

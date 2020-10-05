@@ -96,9 +96,9 @@ func (s *Server) rootHandler() http.Handler {
 				w.Header().Set("content-type", "application/wasm")
 			case strings.HasSuffix(req.URL.Path, ".json"):
 				w.Header().Set("content-type", "application/json")
-			case strings.HasSuffix(req.URL.Path, ".css"):
+			case strings.HasSuffix(req.URL.Path, ".js"):
 				w.Header().Set("content-type", "application/js")
-			case strings.HasSuffix(req.URL.Path, "css"):
+			case strings.HasSuffix(req.URL.Path, ".css"):
 				w.Header().Set("content-type", "text/stylesheet")
 			}
 			fs.ServeHTTP(w, req)
